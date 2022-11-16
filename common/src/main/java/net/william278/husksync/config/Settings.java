@@ -141,7 +141,6 @@ public class Settings {
     public enum TableName {
         USERS("players"),
         USER_DATA("user_data");
-
         private final String defaultName;
 
         TableName(@NotNull String defaultName) {
