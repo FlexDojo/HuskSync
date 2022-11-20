@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(path: ':bukkit', configuration: 'shadow')
+}
+
+shadowJar {
+}
