@@ -19,7 +19,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -146,7 +148,11 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<ItemData> getInventory() {
-        return BukkitSerializer.serializeItemStackArray(player.getInventory().getContents())
+        final PlayerInventory inventory = player.getInventory();
+        if (inventory.isEmpty()) {
+            return CompletableFuture.completedFuture(ItemData.empty());
+        }
+        return BukkitSerializer.serializeItemStackArray(inventory.getContents())
                 .thenApply(ItemData::new);
     }
 
@@ -166,7 +172,11 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<ItemData> getEnderChest() {
-        return BukkitSerializer.serializeItemStackArray(player.getEnderChest().getContents())
+        final Inventory enderChest = player.getEnderChest();
+        if (enderChest.isEmpty()) {
+            return CompletableFuture.completedFuture(ItemData.empty());
+        }
+        return BukkitSerializer.serializeItemStackArray(enderChest.getContents())
                 .thenApply(ItemData::new);
     }
 
@@ -436,11 +446,9 @@ public class BukkitPlayer extends OnlineUser {
 
     @Override
     public CompletableFuture<PersistentDataContainerData> getPersistentDataContainer() {
-        final CompletableFuture<PersistentDataContainerData> future = new CompletableFuture<>();
         final Map<String, PersistentDataTag<?>> persistentDataMap = new HashMap<>();
-
-        Bukkit.getScheduler().runTask(BukkitHuskSync.getInstance(), () -> {
-            final PersistentDataContainer container = player.getPersistentDataContainer();
+        final PersistentDataContainer container = player.getPersistentDataContainer();
+        return CompletableFuture.supplyAsync(() -> {
             container.getKeys().forEach(key -> {
                 BukkitPersistentTypeMapping<?, ?> type = null;
                 for (BukkitPersistentTypeMapping<?, ?> dataType : BukkitPersistentTypeMapping.PRIMITIVE_TYPE_MAPPINGS) {
@@ -453,10 +461,8 @@ public class BukkitPlayer extends OnlineUser {
                     persistentDataMap.put(key.toString(), type.getContainerValue(container, key));
                 }
             });
-            future.complete(new PersistentDataContainerData(persistentDataMap));
-        });
-
-        return future.exceptionally(throwable -> {
+            return new PersistentDataContainerData(persistentDataMap);
+        }).exceptionally(throwable -> {
             BukkitHuskSync.getInstance().log(Level.WARNING,
                     "Could not read " + player.getName() + "'s persistent data map, skipping!");
             throwable.printStackTrace();

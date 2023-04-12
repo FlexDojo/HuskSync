@@ -92,7 +92,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
 
             // Prepare data adapter
-            if (settings.compressData) {
+            if (settings.doCompressData()) {
                 dataAdapter = new CompressedDataAdapter();
             } else {
                 dataAdapter = new JsonDataAdapter();
@@ -117,7 +117,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 log(Level.INFO, "Successfully established a connection to the database");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the database. " +
-                                                          "Please check the supplied database credentials in the config file");
+                        "Please check the supplied database credentials in the config file");
             }
 
             // Prepare redis connection
@@ -128,7 +128,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
                 log(Level.INFO, "Successfully established a connection to the Redis server");
             } else {
                 throw new HuskSyncInitializationException("Failed to establish a connection to the Redis server. " +
-                                                          "Please check the supplied Redis credentials in the config file");
+                        "Please check the supplied Redis credentials in the config file");
             }
 
             // Register events
@@ -169,12 +169,12 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
             }
 
             // Check for updates
-            if (settings.checkForUpdates) {
+            if (settings.doCheckForUpdates()) {
                 log(Level.INFO, "Checking for updates...");
                 getLatestVersionIfOutdated().thenAccept(newestVersion ->
                         newestVersion.ifPresent(newVersion -> log(Level.WARNING,
                                 "An update is available for HuskSync, v" + newVersion
-                                + " (Currently running v" + getPluginVersion() + ")")));
+                                        + " (Currently running v" + getPluginVersion() + ")")));
             }
         } catch (HuskSyncInitializationException exception) {
             log(Level.SEVERE, """
@@ -265,7 +265,11 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
     @Override
     public void log(@NotNull Level level, @NotNull String message, @NotNull Throwable... throwable) {
-        getLogger().log(level, message, throwable);
+        if (throwable.length > 0) {
+            getLogger().log(level, message, throwable[0]);
+        } else {
+            getLogger().log(level, message);
+        }
     }
 
     @NotNull
@@ -304,8 +308,8 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync {
 
                 // Load locales from language preset default
                 final Locales languagePresets = Annotaml.create(Locales.class,
-                        Objects.requireNonNull(getResource("locales/" + settings.language + ".yml"))).get();
-                this.locales = Annotaml.create(new File(getDataFolder(), "messages_" + settings.language + ".yml"),
+                        Objects.requireNonNull(getResource("locales/" + settings.getLanguage() + ".yml"))).get();
+                this.locales = Annotaml.create(new File(getDataFolder(), "messages_" + settings.getLanguage() + ".yml"),
                         languagePresets).get();
                 return true;
             } catch (IOException | NullPointerException | InvocationTargetException | IllegalAccessException |

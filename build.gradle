@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'org.ajoberstar.grgit' version '5.0.0'
     id 'java'
     id 'maven-publish'
@@ -39,8 +39,8 @@ allprojects {
     }
 
     dependencies {
-        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+        testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
     }
 
     test {
