@@ -325,13 +325,8 @@ public abstract class OnlineUser extends User {
                 if (!isOffline()) {
                     final Settings settings = plugin.getSettings();
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.INVENTORIES)) {
-                        if (isDead() && settings.isSynchroniseDeadPlayersChangingServer()) {
-                            plugin.debug("Player " + username + " is dead, so their inventory will be set to empty.");
-                            add(CompletableFuture.runAsync(() -> builder.setInventory(ItemData.empty())));
-                        } else {
                             add(getInventory().thenAccept(builder::setInventory));
                         }
-                    }
                     if (settings.getSynchronizationFeature(Settings.SynchronizationFeature.ENDER_CHESTS)) {
                         add(getEnderChest().thenAccept(builder::setEnderChest));
                     }
