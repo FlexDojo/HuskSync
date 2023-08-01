@@ -1,17 +1,36 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.player;
 
 import de.themoep.minedown.adventure.MineDown;
-import net.william278.desertwell.Version;
+import de.themoep.minedown.adventure.MineDownParser;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.*;
 import net.william278.husksync.event.PreSyncEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -43,12 +62,12 @@ public abstract class OnlineUser extends User {
     public final CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
                                                    @NotNull List<StatusDataFlag> statusDataFlags) {
         final Settings settings = new Settings();
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
-        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HEALTH.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_HEALTH));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.MAX_HEALTH.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_MAX_HEALTH));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.HUNGER.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_HUNGER));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.EXPERIENCE.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_EXPERIENCE));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.INVENTORIES.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_SELECTED_ITEM_SLOT));
+        settings.getSynchronizationFeatures().put(Settings.SynchronizationFeature.LOCATION.name().toLowerCase(Locale.ENGLISH), statusDataFlags.contains(StatusDataFlag.SET_GAME_MODE) || statusDataFlags.contains(StatusDataFlag.SET_FLYING));
         return setStatus(statusData, settings);
     }
 
@@ -59,8 +78,7 @@ public abstract class OnlineUser extends User {
      * @param settings   settings, containing information about which features should be synced
      * @return a future returning void when complete
      */
-    public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData,
-                                                      @NotNull Settings settings);
+    public abstract CompletableFuture<Void> setStatus(@NotNull StatusData statusData, @NotNull Settings settings);
 
     /**
      * Get the player's inventory {@link ItemData} contents
@@ -184,18 +202,43 @@ public abstract class OnlineUser extends User {
     public abstract Version getMinecraftVersion();
 
     /**
+     * Get the player's adventure {@link Audience}
+     *
+     * @return the player's {@link Audience}
+     */
+    @NotNull
+    public abstract Audience getAudience();
+
+    /**
+     * Send a message to this player
+     *
+     * @param component the {@link Component} message to send
+     */
+    public void sendMessage(@NotNull Component component) {
+        getAudience().sendMessage(component);
+    }
+
+    /**
      * Dispatch a MineDown-formatted message to this player
      *
      * @param mineDown the parsed {@link MineDown} to send
      */
-    public abstract void sendMessage(@NotNull MineDown mineDown);
+    public void sendMessage(@NotNull MineDown mineDown) {
+        sendMessage(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
+    }
 
     /**
      * Dispatch a MineDown-formatted action bar message to this player
      *
      * @param mineDown the parsed {@link MineDown} to send
      */
-    public abstract void sendActionBar(@NotNull MineDown mineDown);
+    public void sendActionBar(@NotNull MineDown mineDown) {
+        getAudience().sendActionBar(mineDown
+                .disable(MineDownParser.Option.SIMPLE_FORMATTING)
+                .replace().toComponent());
+    }
 
     /**
      * Dispatch a toast message to this player
@@ -248,7 +291,7 @@ public abstract class OnlineUser extends User {
     public final CompletableFuture<Boolean> setData(@NotNull UserData data, @NotNull HuskSync plugin) {
         return CompletableFuture.supplyAsync(() -> {
             // Prevent synchronising user data from newer versions of Minecraft
-            if (Version.fromMinecraftVersionString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
+            if (Version.fromString(data.getMinecraftVersion()).compareTo(plugin.getMinecraftVersion()) > 0) {
                 plugin.log(Level.SEVERE, "Cannot set data for " + username +
                                          " because the Minecraft version of their user data (" + data.getMinecraftVersion() +
                                          ") is newer than the server's Minecraft version (" + plugin.getMinecraftVersion() + ").");

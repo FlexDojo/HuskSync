@@ -1,14 +1,31 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.config;
 
 import net.william278.annotaml.YamlComment;
 import net.william278.annotaml.YamlFile;
 import net.william278.annotaml.YamlKey;
+import net.william278.husksync.database.Database;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Plugin settings, read from config.yml
@@ -38,6 +55,10 @@ public class Settings {
 
 
     // Database settings
+    @YamlComment("Type of database to use (MYSQL, SQLITE)")
+    @YamlKey("database.type")
+    private Database.Type databaseType = Database.Type.MYSQL;
+    
     @YamlComment("Database connection settings")
     @YamlKey("database.credentials.host")
     private String mySqlHost = "localhost";
@@ -122,7 +143,7 @@ public class Settings {
     private Map<String, Boolean> synchronizationFeatures = SynchronizationFeature.getDefaults();
 
     @YamlKey("synchronization.blacklisted_commands_while_locked")
-    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>();
+    private List<String> blacklistedCommandsWhileLocked = new ArrayList<>(List.of("*"));
 
     @YamlKey("synchronization.event_priorities")
     private Map<String, String> synchronizationEventPriorities = EventType.getDefaults();
@@ -149,6 +170,12 @@ public class Settings {
 
     public boolean doDebugLogging() {
         return debugLogging;
+    }
+
+
+    @NotNull
+    public Database.Type getDatabaseType() {
+        return databaseType;
     }
 
     @NotNull
@@ -182,7 +209,7 @@ public class Settings {
 
     @NotNull
     public String getTableName(@NotNull TableName tableName) {
-        return tableNames.getOrDefault(tableName.name().toLowerCase(), tableName.defaultName);
+        return tableNames.getOrDefault(tableName.name().toLowerCase(Locale.ENGLISH), tableName.defaultName);
     }
 
     public int getMySqlConnectionPoolSize() {
@@ -262,7 +289,7 @@ public class Settings {
     }
 
     public boolean getSynchronizationFeature(@NotNull SynchronizationFeature feature) {
-        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(), feature.enabledByDefault);
+        return getSynchronizationFeatures().getOrDefault(feature.name().toLowerCase(Locale.ENGLISH), feature.enabledByDefault);
     }
 
     @NotNull
@@ -273,7 +300,7 @@ public class Settings {
     @NotNull
     public EventPriority getEventPriority(@NotNull Settings.EventType eventType) {
         try {
-            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase()));
+            return EventPriority.valueOf(synchronizationEventPriorities.get(eventType.name().toLowerCase(Locale.ENGLISH)));
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return EventPriority.NORMAL;
@@ -295,7 +322,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultName);
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultName);
         }
 
         @SuppressWarnings("unchecked")
@@ -355,7 +382,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, Boolean> toEntry() {
-            return Map.entry(name().toLowerCase(), enabledByDefault);
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), enabledByDefault);
         }
 
         @SuppressWarnings("unchecked")
@@ -383,7 +410,7 @@ public class Settings {
 
         @NotNull
         private Map.Entry<String, String> toEntry() {
-            return Map.entry(name().toLowerCase(), defaultPriority.name());
+            return Map.entry(name().toLowerCase(Locale.ENGLISH), defaultPriority.name());
         }
 
 

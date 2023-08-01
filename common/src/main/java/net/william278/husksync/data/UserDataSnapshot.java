@@ -1,3 +1,22 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.data;
 
 import net.william278.husksync.command.Permission;
@@ -8,10 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represents a uniquely versioned and timestamped snapshot of a user's data, including why it was saved.
@@ -63,7 +79,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
         if (pinned()) {
             locales.getLocale("data_manager_pinned").ifPresent(user::sendMessage);
         }
-        locales.getLocale("data_manager_cause", cause().name().toLowerCase().replaceAll("_", " "))
+        locales.getLocale("data_manager_cause", cause().name().toLowerCase(Locale.ENGLISH).replaceAll("_", " "))
                 .ifPresent(user::sendMessage);
 
         // User status data, if present in the snapshot
@@ -73,7 +89,7 @@ public record UserDataSnapshot(@NotNull UUID versionUUID, @NotNull Date versionT
                         Integer.toString((int) statusData.maxHealth),
                         Integer.toString(statusData.hunger),
                         Integer.toString(statusData.expLevel),
-                        statusData.gameMode.toLowerCase()))
+                        statusData.gameMode.toLowerCase(Locale.ENGLISH)))
                 .ifPresent(user::sendMessage);
 
         // Advancement and statistic data, if both are present in the snapshot

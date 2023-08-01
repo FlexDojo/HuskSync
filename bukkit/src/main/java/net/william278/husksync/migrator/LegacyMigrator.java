@@ -1,3 +1,22 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.migrator;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -66,7 +85,7 @@ public class LegacyMigrator extends Migrator {
                 connectionPool.setJdbcUrl(jdbcUrl);
                 connectionPool.setUsername(sourceUsername);
                 connectionPool.setPassword(sourcePassword);
-                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase());
+                connectionPool.setPoolName((getIdentifier() + "_migrator_pool").toUpperCase(Locale.ENGLISH));
 
                 plugin.log(Level.INFO, "Downloading raw data from the legacy database (this might take a while)...");
                 final List<LegacyData> dataToMigrate = new ArrayList<>();
@@ -141,7 +160,7 @@ public class LegacyMigrator extends Migrator {
     @Override
     public void handleConfigurationCommand(@NotNull String[] args) {
         if (args.length == 2) {
-            if (switch (args[0].toLowerCase()) {
+            if (switch (args[0].toLowerCase(Locale.ENGLISH)) {
                 case "host" -> {
                     this.sourceHost = args[1];
                     yield true;

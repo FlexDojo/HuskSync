@@ -1,6 +1,26 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync;
 
-import net.william278.desertwell.UpdateChecker;
+import net.william278.desertwell.util.UpdateChecker;
+import net.william278.desertwell.util.Version;
 import net.william278.husksync.config.Locales;
 import net.william278.husksync.config.Settings;
 import net.william278.husksync.data.DataAdapter;
@@ -9,7 +29,6 @@ import net.william278.husksync.event.EventCannon;
 import net.william278.husksync.migrator.Migrator;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.redis.RedisManager;
-import net.william278.desertwell.Version;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -153,14 +172,14 @@ public interface HuskSync {
      * @return a {@link CompletableFuture} returning the latest {@link Version} if the current one is out-of-date
      */
     default CompletableFuture<Optional<Version>> getLatestVersionIfOutdated() {
-        final UpdateChecker updateChecker = UpdateChecker.create(getPluginVersion(), SPIGOT_RESOURCE_ID);
-        return updateChecker.isUpToDate().thenApply(upToDate -> {
-            if (upToDate) {
-                return Optional.empty();
-            } else {
-                return Optional.of(updateChecker.getLatestVersion().join());
-            }
-        });
+        return UpdateChecker.builder()
+                .currentVersion(getPluginVersion())
+                .endpoint(UpdateChecker.Endpoint.SPIGOT)
+                .resource(Integer.toString(SPIGOT_RESOURCE_ID)).build()
+                .check()
+                .thenApply(checked -> checked.isUpToDate()
+                        ? Optional.empty()
+                        : Optional.of(checked.getLatestVersion()));
     }
 
     /**

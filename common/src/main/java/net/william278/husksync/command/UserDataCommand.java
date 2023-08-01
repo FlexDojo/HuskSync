@@ -1,18 +1,34 @@
+/*
+ * This file is part of HuskSync, licensed under the Apache License 2.0.
+ *
+ *  Copyright (c) William278 <will27528@gmail.com>
+ *  Copyright (c) contributors
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.DataSaveCause;
 import net.william278.husksync.data.UserData;
-import net.william278.husksync.util.DataSnapshotList;
 import net.william278.husksync.player.OnlineUser;
 import net.william278.husksync.util.DataDumper;
+import net.william278.husksync.util.DataSnapshotList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -34,7 +50,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
             return;
         }
 
-        switch (args[0].toLowerCase()) {
+        switch (args[0].toLowerCase(Locale.ENGLISH)) {
             case "view" -> {
                 if (args.length < 2) {
                     plugin.getLocales().getLocale("error_invalid_syntax",
@@ -47,7 +63,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                     try {
                         final UUID versionUuid = UUID.fromString(args[2]);
                         CompletableFuture.runAsync(() -> plugin.getDatabase()
-                                .getUserByName(username.toLowerCase())
+                                .getUserByName(username.toLowerCase(Locale.ENGLISH))
                                 .thenAccept(optionalUser -> optionalUser
                                         .ifPresentOrElse(user -> plugin.getDatabase().getUserData(user, versionUuid)
                                                         .thenAccept(data -> data.ifPresentOrElse(
@@ -63,7 +79,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                     }
                 } else {
                     CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
+                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .thenAccept(optionalUser -> optionalUser
                                     .ifPresentOrElse(user -> plugin.getDatabase().getCurrentUserData(user)
                                                     .thenAccept(latestData -> latestData.ifPresentOrElse(
@@ -87,7 +103,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 }
                 final String username = args[1];
                 CompletableFuture.runAsync(() -> plugin.getDatabase()
-                        .getUserByName(username.toLowerCase())
+                        .getUserByName(username.toLowerCase(Locale.ENGLISH))
                         .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                 user -> plugin.getDatabase().getUserData(user).thenAccept(dataList -> {
                                     // Check if there is data to display
@@ -133,7 +149,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
+                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().deleteUserData(user, versionUuid).thenAccept(deleted -> {
                                         if (deleted) {
@@ -172,7 +188,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
+                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(data -> {
                                         if (data.isEmpty()) {
@@ -219,7 +235,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
+                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
                                             optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
@@ -267,7 +283,7 @@ public class UserDataCommand extends CommandBase implements TabCompletable {
                 try {
                     final UUID versionUuid = UUID.fromString(args[2]);
                     CompletableFuture.runAsync(() -> plugin.getDatabase()
-                            .getUserByName(username.toLowerCase())
+                            .getUserByName(username.toLowerCase(Locale.ENGLISH))
                             .thenAccept(optionalUser -> optionalUser.ifPresentOrElse(
                                     user -> plugin.getDatabase().getUserData(user, versionUuid).thenAccept(
                                             optionalUserData -> optionalUserData.ifPresentOrElse(userData -> {
